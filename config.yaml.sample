@@ -1,0 +1,8 @@
+general:
+  host: localhost
+  port: 6667
+  nickname: fortunella
+  password: 
+
+plugins:
+

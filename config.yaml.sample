@@ -3,6 +3,7 @@ general:
   port: 6667
   nickname: fortunella
   password: 
+  encoding: utf-8
 
 plugins:
 

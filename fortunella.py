@@ -2,11 +2,18 @@
 # -*- encoding: utf-8 -*-
 import sys
 sys.path.insert(0, './lib')
+import codecs
 import yaml
 import optparse
 import fortunella
 
+def wrapstdio():
+	enc = sys.getfilesystemencoding()
+	sys.stdin = codecs.getreader(enc)(sys.stdin, 'replace')
+	sys.stdout = codecs.getwriter(enc)(sys.stdout, 'replace')
+
 def main(config):
+	wrapstdio()
 	fortunella.run(config)
 
 if __name__ == '__main__':

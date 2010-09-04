@@ -86,7 +86,6 @@ class Core(irc.IRCClient):
 		else:
 			params = message.split()
 			if len(params) >= 1:
-				self.logger.debug('command')
 				command = params.pop(0)
 				self.plugin_manager.push(events.COMMAND, command=command, user=user, channel=channel, params=params)
 			self.plugin_manager.push(events.PRIVMSG, user=user, channel=channel, message=message)

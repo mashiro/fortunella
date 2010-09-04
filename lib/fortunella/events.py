@@ -3,8 +3,12 @@
 
 class Enum(object):
 	def __init__(self, *names):
-		for i, name in enumerate(names):
-			setattr(self, name, i)
+		self.names = list(names)
+		for index, name in enumerate(names):
+			setattr(self, name, index)
+	
+	def name(self, index):
+		return self.names[index]
 
 events = Enum(
 	'CONNECTIN_MADE',

@@ -10,17 +10,9 @@ import logging
 import inspect
 
 class Core(irc.IRCClient):
-
-	def info(self, fmt, *args, **kwargs):
-		self.writelog(self.logger.info, fmt, *args, **kwargs)
-	
-	def debug(self, fmt, *args, **kwargs):
-		self.writelog(self.logger.debug, fmt, *args, **kwargs)
-
-	def writelog(self, func, fmt, *args, **kwargs):
-		channel = kwargs.setdefault('channel', 'fortunella')
-		func('<%s> %s', channel, fmt % args)
-
+	def __init__(self):
+		self.logger = logging.getLogger('fortunella.Core')
+		self.plugin_manager = PluginManager(self)
 
 	def lineReceived(self, line):
 		if isinstance(line, str):
@@ -34,7 +26,6 @@ class Core(irc.IRCClient):
 
 
 	def connectionMade(self):
-		self.logger = self.factory.logger
 		self.config = self.factory.config
 		self.general_config = self.config['general']
 		self.plugins_config = self.config['plugins']
@@ -46,20 +37,19 @@ class Core(irc.IRCClient):
 		self.nickname = self.general_config['nickname']
 		self.password = self.general_config['password']
 		irc.IRCClient.connectionMade(self)
-		self.info('connected')
+		self.logger.info('connected')
 
 		# load plugins
-		self.plugin_manager = PluginManager(self)
-		self.plugin_manager.loads()
+		self.plugin_manager.loads(self.general_config['plugins_dir'])
 		self.plugin_manager.push(events.CONNECTIN_MADE)
 
 	def connectionLost(self, reason):
 		irc.IRCClient.connectionLost(self, reason)
-		self.info('disconnected')
+		self.logger.info('disconnected')
 		self.plugin_manager.push(events.CONNECTIN_LOST, reason=reason)
 
 	def signedOn(self):
-		self.info('signed on')
+		self.logger.info('signed on')
 		self.plugin_manager.push(events.SIGNED_ON)
 
 
@@ -67,42 +57,43 @@ class Core(irc.IRCClient):
 		self.userJoined(self.nickname, channel)
 
 	def userJoined(self, user, channel):
-		self.debug('%s has joined', user, channel=channel)
+		self.logger.debug('<%s> %s has joined', channel, user)
 		self.plugin_manager.push(events.JOIN, user=user, channel=channel)
 
 	def left(self, channel):
 		self.userLeft(self.nickname, channel)
 
 	def userLeft(self, user, channel):
-		self.debug('%s has left', user, channel=channel)
+		self.logger.debug('<%s> %s has left', channel, user)
 		self.plugin_manager.push(events.LEFT, user=user, channel=channel)
 
 	def userQuit(self, user, message):
-		self.debug('%s has quit (%s)', user, message)
+		self.logger.debug('%s has quit (%s)', user, message)
 		self.plugin_manager.push(events.QUIT, user=user, message=message)
 
 	def modeChanged(self, user, channel, added, modes, params):
 		user = user.split('!', 1)[0]
 		params = tuple([param for param in params if param])
-		self.debug('%s has changed mode: %c%s %s', user, '+' if added else '-', modes, ' '.join(params), channel=channel)
+		self.logger.debug('<%s> %s has changed mode: %c%s %s', channel, user, '+' if added else '-', modes, ' '.join(params))
 		self.plugin_manager.push(events.MODE, user=user, channel=channel, added=added, params=params)
 
 	def privmsg(self, user, channel, message):
 		user = user.split('!', 1)[0]
-		self.debug('%s: %s', user, message, channel=channel)
+		self.logger.debug('<%s> %s: %s', channel, user, message)
 
 		if channel == self.nickname:
 			self.plugin_manager.push(events.TALK, user=user, message=message)
 		else:
-			args = message.split()
-			if len(args) >= 1:
-				command = args.pop(0)
-				self.plugin_manager.push(events.COMMAND, command=command, user=user, channel=channel, *args)
+			params = message.split()
+			if len(params) >= 1:
+				self.logger.debug('command')
+				command = params.pop(0)
+				self.plugin_manager.push(events.COMMAND, command=command, user=user, channel=channel, params=params)
 			self.plugin_manager.push(events.PRIVMSG, user=user, channel=channel, message=message)
 
 	def noticed(self, user, channel, message):
 		user = user.split('!', 1)[0]
-		self.debug('(NOTICE) %s: %s', user, message, channel=channel)
+		self.logger.debug('(NOTICE) <%s> %s: %s', channel, user, message)
 		self.plugin_manager.push(events.NOTICE, user=user, channel=channel, message=message)
 
 	def nickChanged(self, newnick):
@@ -111,27 +102,27 @@ class Core(irc.IRCClient):
 		self.userRenamed(oldnick, newnick)
 
 	def userRenamed(self, oldnick, newnick):
-		self.debug('%s is now known as %s', oldnick, newnick)
+		self.logger.debug('%s is now known as %s', oldnick, newnick)
 		self.plugin_manager.push(events.NICK, oldnick=oldnick, newnick=newnick)
 
 	def kickedFrom(self, channel, kicker, message):
 		self.userKicked(self.nickname, channel, kicker, message)
 
 	def userKicked(self, kicked, channel, kicker, message):
-		self.debug('%s has kicked %s (%s)', kicker, kicked, message, channel=channel)
+		self.logger.debug('<%s> %s has kicked %s (%s)', channel, kicker, kicked, message)
 		self.plugin_manager.push(events.KICK, kicked=kicked, kicker=kicker, channel=channel, message=message)
 
 	def topicUpdated(self, user, channel, topic):
-		self.debug('%s has set topic: %s', user, topic, channel=channel)
+		self.logger.debug('<%s> %s has set topic: %s', channel, user, topic)
 		self.plugin_manager.push(events.TOPIC, user=user, topic=topic, channel=channel)
 
 
 class CoreFactory(protocol.ReconnectingClientFactory):
 	protocol = Core
 
-	def __init__(self, config, logger):
+	def __init__(self, config):
 		self.config = config
-		self.logger = logger
+		self.logger = logging.getLogger('fortunella.CoreFactory')
 	
 	def clientConnectionLost(self, connector, reason):
 		self.logger.debug('disconnected: %s', reason)
@@ -141,17 +132,9 @@ class CoreFactory(protocol.ReconnectingClientFactory):
 		self.logger.debug('connection failed: %s', reason)
 		protocol.ReconnectingClientFactory.clientConnectionFailed(self, connector, reason)
 
-def run(config={}, logger=None):
-	if logger is None:
-		stdout_handler = logging.StreamHandler(sys.stdout)
-		formatter = logging.Formatter('%(asctime)s %(levelname)s [%(module)s] %(message)s', '%Y-%m-%d %H:%M:%S')
-		stdout_handler.setFormatter(formatter)
-		logger = logging.getLogger('fortunella')
-		logger.addHandler(stdout_handler)
-		logger.setLevel(logging.DEBUG)
-
-	general = config.setdefault('general', {})
-	plugins = config.setdefault('plugins', {})
+def run(config):
+	general = config.setdefault('general', config.pop('general', None) or {})
+	plugins = config.setdefault('plugins', config.pop('plugins', None) or {})
 	host = general.setdefault('host', 'localhost')
 	port = general.setdefault('port', 6667)
 	general.setdefault('nickname', 'fortunella')
@@ -159,6 +142,6 @@ def run(config={}, logger=None):
 	general.setdefault('encoding', 'utf-8')
 	general.setdefault('plugins_dir', 'plugins')
 
-	reactor.connectTCP(host, port, CoreFactory(config, logger))
+	reactor.connectTCP(host, port, CoreFactory(config))
 	reactor.run()
 

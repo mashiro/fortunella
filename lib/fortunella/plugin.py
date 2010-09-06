@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-import logging
 from fortunella.events import events
+import logging
 
 class Plugin(object):
 	def __init__(self, core, manager):
@@ -17,6 +17,6 @@ class Plugin(object):
 	@classmethod
 	def _getlogger(cls, instance):
 		klass = instance.__class__
-		return logging.getLogger('fortunella.plugins.%s' % klass.__name__)
-
+		name = '%s.%s' % (klass.__module__.replace('/', '.'), klass.__name__)
+		return logging.getLogger('fortunella.%s' % name)
 

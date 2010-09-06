@@ -9,6 +9,11 @@ import sys
 import logging
 import inspect
 
+class Config(object):
+	def __init__(self, d):
+		self.general = d['general']
+		self.plugins = d['plugins']
+
 class Core(irc.IRCClient):
 	def __init__(self):
 		self.logger = logging.getLogger('fortunella.Core')
@@ -26,21 +31,19 @@ class Core(irc.IRCClient):
 
 
 	def connectionMade(self):
-		self.config = self.factory.config
-		self.general_config = self.config['general']
-		self.plugins_config = self.config['plugins']
-		self.host = self.general_config['host']
-		self.port = self.general_config['port']
-		self.encoding = self.general_config['encoding']
+		self.config = Config(self.factory.config)
+		self.host = self.config.general['host']
+		self.port = self.config.general['port']
+		self.encoding = self.config.general['encoding']
 
 		# connect
-		self.nickname = self.general_config['nickname']
-		self.password = self.general_config['password']
+		self.nickname = self.config.general['nickname']
+		self.password = self.config.general['password']
 		irc.IRCClient.connectionMade(self)
 		self.logger.info('connected')
 
 		# load plugins
-		self.plugin_manager.loads(self.general_config['plugins_dir'])
+		self.plugin_manager.loads(self.config.general['plugins_dir'])
 		self.plugin_manager.push(events.CONNECTIN_MADE)
 
 	def connectionLost(self, reason):

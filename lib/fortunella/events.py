@@ -11,6 +11,8 @@ class Enum(object):
 		return self.names[index]
 
 events = Enum(
+	'PLUGIN_LOAD_COMPLETE',
+
 	'CONNECTIN_MADE',
 	'CONNECTIN_LOST',
 	'SIGNED_ON',

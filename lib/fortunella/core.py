@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
+from fortunella.plugin_manager import PluginManager
+from fortunella.events import events
+from fortunella.utils import getlogger
 from twisted.words.protocols import irc
 from twisted.internet import reactor, protocol
-from fortunella.plugin_manager import PluginManager
-from fortunella.plugin import Plugin
-from fortunella.events import events
-import sys
-import logging
-import inspect
 
 class Config(object):
 	def __init__(self, d):
@@ -16,8 +13,9 @@ class Config(object):
 
 class Core(irc.IRCClient):
 	def __init__(self):
-		self.logger = logging.getLogger('fortunella.Core')
+		self.logger = getlogger(self)
 		self.plugin_manager = PluginManager(self)
+
 
 	def lineReceived(self, line):
 		if isinstance(line, str):
@@ -31,7 +29,7 @@ class Core(irc.IRCClient):
 
 
 	def connectionMade(self):
-		self.config = Config(self.factory.config)
+		self.config = self.factory.config
 		self.host = self.config.general['host']
 		self.port = self.config.general['port']
 		self.encoding = self.config.general['encoding']
@@ -43,7 +41,7 @@ class Core(irc.IRCClient):
 		self.logger.info('connected')
 
 		# load plugins
-		self.plugin_manager.loads(self.config.general['plugins_dir'])
+		self.plugin_manager.loads(self.config.general['plugin_dir'])
 		self.plugin_manager.push(events.CONNECTIN_MADE)
 
 	def connectionLost(self, reason):
@@ -118,32 +116,35 @@ class Core(irc.IRCClient):
 		self.logger.debug('<%s> %s has set topic: %s', channel, user, topic)
 		self.plugin_manager.push(events.TOPIC, user=user, topic=topic, channel=channel)
 
-
 class CoreFactory(protocol.ReconnectingClientFactory):
 	protocol = Core
 
 	def __init__(self, config):
 		self.config = config
-		self.logger = logging.getLogger('fortunella.CoreFactory')
+		self.logger = getlogger(self)
 	
 	def clientConnectionLost(self, connector, reason):
-		self.logger.debug('disconnected: %s', reason)
+		self.logger.debug('connection lost: %s', reason)
 		protocol.ReconnectingClientFactory.clientConnectionLost(self, connector, reason)
 	
 	def clientConnectionFailed(self, connector, reason):
 		self.logger.debug('connection failed: %s', reason)
 		protocol.ReconnectingClientFactory.clientConnectionFailed(self, connector, reason)
 
-def run(config):
+def setdefault(config):
 	general = config.setdefault('general', config.pop('general', None) or {})
 	plugins = config.setdefault('plugins', config.pop('plugins', None) or {})
-	host = general.setdefault('host', 'localhost')
-	port = general.setdefault('port', 6667)
+	general.setdefault('host', 'localhost')
+	general.setdefault('port', 6667)
 	general.setdefault('nickname', 'fortunella')
 	general.setdefault('password', '')
 	general.setdefault('encoding', 'utf-8')
-	general.setdefault('plugins_dir', 'plugins')
+	general.setdefault('plugin_dir', 'plugins')
+	return config
 
-	reactor.connectTCP(host, port, CoreFactory(config))
+def run(config):
+	config = Config(setdefault(config))
+	factory = CoreFactory(config)
+	reactor.connectTCP(config.general['host'], config.general['port'], factory)
 	reactor.run()
 

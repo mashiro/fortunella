@@ -4,6 +4,12 @@ general:
   nickname: fortunella
   password: 
   encoding: utf-8
+  plugin_dir: plugins
+  loglevel: info
 
 plugins:
+  Http:
+    Default:
+
+  #Echo:
 

@@ -10,7 +10,9 @@ def getlogger(instance):
 	klass = instance.__class__
 	names = re.split(r'[/\.]', klass.__module__)
 	if 'fortunella' != names[0]:
+		names.pop(0)
 		names.insert(0, 'fortunella')
+		names.insert(1, 'plugins')
 	names.append(klass.__name__)
 	return logging.getLogger('.'.join(names))
 

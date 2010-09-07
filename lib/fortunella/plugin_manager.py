@@ -37,7 +37,6 @@ class PluginManager(object):
 		self.callbackmap = {}
 		self.plugins = []
 		self.class_loader.loads(path)
-		self.push(events.PLUGIN_LOAD_COMPLETE)
 	
 	def reload(self):
 		self.class_loader.reload()

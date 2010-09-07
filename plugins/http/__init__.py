@@ -10,10 +10,10 @@ class Http(Plugin):
 		self.config = config or {}
 		self.handlers = []
 		self.re_url = re.compile(r'https?://[^ ]+', re.IGNORECASE|re.DOTALL)
-		self.register(self._load_completed, event=events.PLUGIN_LOAD_COMPLETE)
+		self.register(self._connection_made, event=events.CONNECTION_MADE)
 		self.register(self.privmsg, event=events.PRIVMSG)
 
-	def _load_completed(self):
+	def _connection_made(self):
 		self.class_loader = ClassLoader(logger=self.logger, base=Handler, callback=self._handler_loaded)
 		self.class_loader.loads(self.core.config.general['plugin_dir'] + '/http')
 
@@ -27,7 +27,14 @@ class Http(Plugin):
 		return False
 
 	def privmsg(self, user, channel, message):
-		pass
+		handlers = sorted(self.handlers, key=lambda h: h.priority, reverse=True)
+		for match in self.re_url.finditer(message):
+			url = match.group(0)
+			for handler in handlers:
+				result = handler.process(url)
+				if result:
+					self.notice(channel, result)
+					break
 
 class Handler(object):
 	def __init__(self, plugin):
@@ -35,7 +42,6 @@ class Handler(object):
 		self.logger = getlogger(self)
 		self.plugin = plugin
 		self.core = plugin.core
-		self.notice = plugin.notice
 	
 	#def init(self, config):
 	#def process(self, url):

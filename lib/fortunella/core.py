@@ -42,12 +42,12 @@ class Core(irc.IRCClient):
 
 		# load plugins
 		self.plugin_manager.loads(self.config.general['plugin_dir'])
-		self.plugin_manager.push(events.CONNECTIN_MADE)
+		self.plugin_manager.push(events.CONNECTION_MADE)
 
 	def connectionLost(self, reason):
 		irc.IRCClient.connectionLost(self, reason)
 		self.logger.info('disconnected')
-		self.plugin_manager.push(events.CONNECTIN_LOST, reason=reason)
+		self.plugin_manager.push(events.CONNECTION_LOST, reason=reason)
 
 	def signedOn(self):
 		self.logger.info('signed on')

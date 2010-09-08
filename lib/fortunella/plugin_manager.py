@@ -21,11 +21,13 @@ class PluginManager(object):
 	def _plugin_loaded(self, module, klass):
 		name = klass.__name__
 		if name in self.core.config.plugins:
-			plugin = klass(self.core, self)
-			plugin.init(self.core.config.plugins[name])
-			self.plugins.append(plugin)
-			self._setmodule(module)
-			return True
+			config = self.core.config.plugins[name]
+			if not 'disabled' in config:
+				plugin = klass(self.core, self)
+				plugin.init(self.core.config.plugins[name])
+				self.plugins.append(plugin)
+				self._setmodule(module)
+				return True
 		return False
 
 	def _setmodule(self, module):
@@ -33,14 +35,13 @@ class PluginManager(object):
 		name = '%s.%s' % (self.plugin_module_name, basename)
 		sys.modules[name] = module
 
-	def loads(self, path):
+	def load_plugins(self, path):
 		self.callbackmap = {}
 		self.plugins = []
 		self.class_loader.loads(path)
 	
-	def reload(self):
+	def reload_plugins(self):
 		self.class_loader.reload()
-
 
 	def register(self, func, event=None, command=None):
 		if command:

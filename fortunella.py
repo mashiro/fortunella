@@ -6,6 +6,7 @@ import codecs
 import yaml
 import optparse
 import logging
+import locale
 import fortunella
 
 LOG_LEVELS = dict(
@@ -34,6 +35,7 @@ def main(config):
 	fortunella.run(config)
 
 if __name__ == '__main__':
+	locale.setlocale(locale.LC_ALL, '')
 	wrapstdio()
 
 	parser = optparse.OptionParser()

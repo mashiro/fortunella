@@ -74,9 +74,8 @@ class Default(Handler):
 			parser.feed(data)
 			if parser.image:
 				image = parser.image
-				witdh = image.size[0]
-				height = image.size[1]
-				return '%s Image, %dx%d %dKB' % (image.format, witdh, height, size)
+				width, height = image.size
+				return '%s Image, %dx%d %dKB' % (image.format, width, height, size)
 
 		return 'Unknown Image, %dKB' % (size)
 

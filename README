@@ -3,5 +3,5 @@ require:
   twisted
   PyYAML
   PIL
-  elementTree if Python2.4 or lower
+  elementTree if Python2.4
 

@@ -17,6 +17,6 @@ plugins:
     NicoVideo:
 
   GoogleSearch:
-
-  GoogleImageSearch:
+    Web:
+	Image:
 

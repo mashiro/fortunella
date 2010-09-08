@@ -35,11 +35,11 @@ class Default(Handler):
 				return self.fetch_head(location, limit-1)
 
 			content_type = res.getheader('content-type')
-			content_length = int(res.getheader('content-length'))
+			content_length = res.getheader('content-length')
 			if 'html' in content_type:
-				return self.fetch_html(url, content_type, content_length)
+				return self.fetch_html(url, content_type)
 			elif 'image' in content_type:
-				return self.fetch_image(url, content_type, content_length)
+				return self.fetch_image(url, content_length)
 			else:
 				return '[%s] %dKB' % (content_type, content_length / 1024)
 		except socket.gaierror, e:
@@ -47,7 +47,7 @@ class Default(Handler):
 		except Exception, e:
 			return e
 
-	def fetch_html(self, url, content_type, content_length):
+	def fetch_html(self, url, content_type):
 		scheme, host, path = self.urlparse(url)
 		conn = httplib.HTTPConnection(host)
 		conn.request('GET', path, headers=dict(UserAgent=self.user_agent, Range=self.block_size))
@@ -59,7 +59,7 @@ class Default(Handler):
 		title = self.search(self.re_title, data, 'no titles')
 		return '%s [%s]' % (title, content_type)
 
-	def fetch_image(self, url, content_type, content_length):
+	def fetch_image(self, url, content_length):
 		scheme, host, path = self.urlparse(url)
 		conn = httplib.HTTPConnection(host)
 		conn.request('GET', path, headers=dict(UserAgent=self.user_agent))

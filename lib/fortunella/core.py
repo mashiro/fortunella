@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 from fortunella.plugin_manager import PluginManager
 from fortunella.events import events
-from fortunella.utils import getlogger
+from fortunella.utils import getlogger, if_
 from twisted.words.protocols import irc
 from twisted.internet import reactor, protocol
 
@@ -41,7 +41,7 @@ class Core(irc.IRCClient):
 		self.logger.info('connected')
 
 		# load plugins
-		self.plugin_manager.loads(self.config.general['plugin_dir'])
+		self.plugin_manager.load_plugins(self.config.general['plugin_dir'])
 		self.plugin_manager.push(events.CONNECTION_MADE)
 
 	def connectionLost(self, reason):
@@ -75,7 +75,7 @@ class Core(irc.IRCClient):
 	def modeChanged(self, user, channel, added, modes, params):
 		user = user.split('!', 1)[0]
 		params = tuple([param for param in params if param])
-		self.logger.debug('<%s> %s has changed mode: %c%s %s', channel, user, '+' if added else '-', modes, ' '.join(params))
+		self.logger.debug('<%s> %s has changed mode: %c%s %s', channel, user, if_(added, '+', '-'), modes, ' '.join(params))
 		self.plugin_manager.push(events.MODE, user=user, channel=channel, added=added, params=params)
 
 	def privmsg(self, user, channel, message):

@@ -6,6 +6,12 @@ import logging
 import itertools
 from glob import glob
 
+# python2.4 ternary operator
+def if_(cond, yes, no):
+	if cond:
+		return yes
+	return no
+
 def getlogger(instance):
 	klass = instance.__class__
 	names = re.split(r'[/\.]', klass.__module__)

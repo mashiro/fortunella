@@ -4,7 +4,7 @@ from fortunella.plugins.http import Handler
 import re
 import httplib
 import socket
-import ImageFile # PIL
+import ImageFile # require PIL
 
 class Default(Handler):
 	def init(self, config):
@@ -34,8 +34,8 @@ class Default(Handler):
 				location = res.getheader('location')
 				return self.fetch_head(location, limit-1)
 
-			content_type = res.getheader('content-type')
-			content_length = res.getheader('content-length')
+			content_type = res.getheader('content-type') or ''
+			content_length = int(res.getheader('content-length') or 0)
 			if 'html' in content_type:
 				return self.fetch_html(url, content_type)
 			elif 'image' in content_type:

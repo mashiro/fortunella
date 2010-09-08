@@ -8,10 +8,15 @@ general:
   loglevel: info
 
 plugins:
-  Http:
-    Default:
-	NicoVideo:
-
   Echo:
     disabled:
+      - '.*'
+
+  Http:
+    Default:
+    NicoVideo:
+
+  GoogleSearch:
+
+  GoogleImageSearch:
 

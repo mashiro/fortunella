@@ -10,12 +10,11 @@ try:
 except ImportError:
 	import simplejson as json
 
-class GoogleSearch(Plugin):
+class GoogleImageSearch(Plugin):
 	def init(self, config):
 		self.config = config or {}
-		self.config.setdefault('prefix', 'g')
-		self.config.setdefault('template', '$titleNoFormatting $url')
-		self.config.setdefault('lr', 'lang_ja')
+		self.config.setdefault('prefix', 'gi')
+		self.config.setdefault('template', '$titleNoFormatting [${width}x${height}] $url $originalContextUrl')
 		self.config.setdefault('safe', 'off')
 
 		self.config.setdefault('v', '1.0')
@@ -37,8 +36,8 @@ class GoogleSearch(Plugin):
 
 	def search(self, command, user, channel, params):
 		template = Template(self.config['template'])
-		query = self.makequery(params, lr=self.config['lr'], safe=self.config['safe'])
-		data = self.fetch('web', query)
+		query = self.makequery(params, safe=self.config['safe'])
+		data = self.fetch('images', query)
 		jsondata = json.loads(data)
 		results = jsondata['responseData']['results']
 		for result in results:

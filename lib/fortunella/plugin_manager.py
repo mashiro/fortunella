@@ -22,12 +22,11 @@ class PluginManager(object):
 		name = klass.__name__
 		if name in self.core.config.plugins:
 			config = self.core.config.plugins[name]
-			if not 'disabled' in config:
-				plugin = klass(self.core, self)
-				plugin.init(self.core.config.plugins[name])
-				self.plugins.append(plugin)
-				self._setmodule(module)
-				return True
+			plugin = klass(self.core, self)
+			plugin.init(config)
+			self.plugins.append(plugin)
+			self._setmodule(module)
+			return True
 		return False
 
 	def _setmodule(self, module):
@@ -46,8 +45,14 @@ class PluginManager(object):
 	def register(self, func, event=None, command=None):
 		if command:
 			event = events.COMMAND
+
+		if hasattr(func, 'im_self'):
+			instance = func.im_self
+		else:
+			instance
+
 		callbacks = self.callbackmap.setdefault(event, [])
-		callbacks.append((func, command))
+		callbacks.append(dict(instance=instance, func=func, command=command))
 		self.logger.debug('registering %s for event %s', func, events.name(event))
 		return self
 
@@ -55,14 +60,39 @@ class PluginManager(object):
 		callbacks = self.callbackmap.get(event)
 		if callbacks is None:
 			return
+		
+		alloweds = []
+		for callback in callbacks:
+			instance = callback['instance']
+			channel = kwargs.get('channel')
+			if instance and channel:
+				klass = instance.__class__
+				config = self.core.config.plugins[klass.__name__]
+				enabled = config.get('enabled')
+				disabled = config.get('disabled')
+
+				def ismatch(patterns, s):
+					for pattern in patterns:
+						if re.search(pattern, s):
+							return True
+					return False
+
+				if enabled and not ismatch(enabled, channel):
+					continue
+				if disabled and ismatch(disabled, channel):
+					continue
+
+				alloweds.append(callback)
+			else:
+				alloweds.append(callback)
 
 		if event == events.COMMAND:
 			command = kwargs['command']
-			functions = [c[0] for c in callbacks if command == c[1]]
+			funcs = [c['func'] for c in alloweds if command == c['command']]
 		else:
-			functions = [c[0] for c in callbacks]
+			funcs = [c['func'] for c in alloweds]
 
-		for func in functions:
+		for func in funcs:
 			deferred = threads.deferToThread(lambda: func(*args, **kwargs))
 			deferred.addErrback(self._failed)
 	

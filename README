@@ -3,5 +3,6 @@ require:
   twisted
   PyYAML
   PIL
-  elementTree if Python2.4
+  elementTree if Python2.4 or lower
+  simplejson if Python2.5 or lower
 

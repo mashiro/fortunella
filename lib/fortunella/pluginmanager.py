@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 from fortunella.plugin import Plugin
 from fortunella.events import events
-from fortunella.utils import getlogger, ClassLoader
+from fortunella.utils import getlogger, ClassLoader, isallowed
 from twisted.internet import threads, reactor, defer
 import sys
 import re
@@ -68,23 +68,9 @@ class PluginManager(object):
 			if instance and channel:
 				klass = instance.__class__
 				config = self.core.config.plugins[klass.__name__] or {}
-				enabled = config.get('enabled')
-				disabled = config.get('disabled')
-
-				def ismatch(patterns, s):
-					for pattern in patterns:
-						if re.search(pattern, s):
-							return True
-					return False
-
-				if enabled and not ismatch(enabled, channel):
+				if not isallowed(config, channel):
 					continue
-				if disabled and ismatch(disabled, channel):
-					continue
-
-				alloweds.append(callback)
-			else:
-				alloweds.append(callback)
+			alloweds.append(callback)
 
 		if event == events.COMMAND:
 			command = kwargs['command']
@@ -98,4 +84,5 @@ class PluginManager(object):
 	
 	def _failed(self, failure):
 		self.logger.error(failure)
+
 

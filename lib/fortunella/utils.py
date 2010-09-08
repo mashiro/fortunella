@@ -12,6 +12,24 @@ def if_(cond, yes, no):
 		return yes
 	return no
 
+def isallowed(config, channel):
+	config = config or {}
+	enabled = config.get('enabled')
+	disabled = config.get('disabled')
+
+	def ismatch(patterns, s):
+		for pattern in patterns:
+			if re.search(pattern, s):
+				return  True
+			return False
+
+	if enabled and not ismatch(enabled, channel):
+		return False
+	if disabled and ismatch(disabled, channel):
+		return False
+
+	return True
+
 def getlogger(instance):
 	klass = instance.__class__
 	names = re.split(r'[/\.]', klass.__module__)

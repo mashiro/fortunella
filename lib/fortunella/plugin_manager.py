@@ -49,7 +49,7 @@ class PluginManager(object):
 		if hasattr(func, 'im_self'):
 			instance = func.im_self
 		else:
-			instance
+			instance = None
 
 		callbacks = self.callbackmap.setdefault(event, [])
 		callbacks.append(dict(instance=instance, func=func, command=command))
@@ -67,7 +67,7 @@ class PluginManager(object):
 			channel = kwargs.get('channel')
 			if instance and channel:
 				klass = instance.__class__
-				config = self.core.config.plugins[klass.__name__]
+				config = self.core.config.plugins[klass.__name__] or {}
 				enabled = config.get('enabled')
 				disabled = config.get('disabled')
 

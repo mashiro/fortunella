@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-from fortunella.plugin_manager import PluginManager
+from fortunella.pluginmanager import PluginManager
 from fortunella.events import events
 from fortunella.utils import getlogger, if_
 from twisted.words.protocols import irc

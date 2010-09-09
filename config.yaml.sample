@@ -15,6 +15,7 @@ plugins:
   Http:
     Default:
     NicoVideo:
+	YouTube:
 
   GoogleSearch:
     Web:

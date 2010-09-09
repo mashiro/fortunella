@@ -14,7 +14,7 @@ class NicoVideo(Handler):
 	def init(self, config):
 		self.config = config or {}
 		self.template = self.config.get('template',
-				u'$title ($length) [再生: $view_counter コメ: $comment_num マイ: $mylist_counter]')
+				u'[NicoVideo] $title ($length) [再生: $view_counter コメ: $comment_num マイ: $mylist_counter]')
 		self.re_nicovideo = re.compile(r'(nicovideo\.jp/watch|nico\.ms)/([a-z]{2}\d+)', re.IGNORECASE)
 	
 	def process(self, url):

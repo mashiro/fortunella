@@ -14,7 +14,9 @@ class Default(Handler):
 		self.user_agent = self.config.get('UserAgent', 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0)')
 		self.block_size = self.config.get('BlockSize', 4096)
 		self.re_charset = re.compile(r'charset=([\w-]+)', re.IGNORECASE|re.DOTALL)
-		self.re_title = re.compile(r'<title.*?>(.*?)</title>', re.IGNORECASE|re.DOTALL)
+		self.re_metatitle = re.compile(r'<meta.*?name="title".*?content="(.*?)".*?>', re.IGNORECASE|re.DOTALL)
+		self.re_title = re.compile(r'<title.*?>\s*(.*?)\s*</title>', re.IGNORECASE|re.DOTALL)
+		self.re_linebreak = re.compile(r'\r|\n|\r\n', re.IGNORECASE|re.DOTALL)
 
 	def process(self, url):
 		return self.fetch_head(url)
@@ -56,7 +58,10 @@ class Default(Handler):
 
 		charset = self.search(self.re_charset, data, 'utf-8')
 		data = data.decode(charset, 'replace')
-		title = self.search(self.re_title, data, 'no titles')
+		title = self.search(self.re_metatitle, data, None)
+		if title is None:
+			title = self.search(self.re_title, data, 'no titles')
+		title = self.re_linebreak.sub('', title)
 		return '%s [%s]' % (title, content_type)
 
 	def fetch_image(self, url, content_length):

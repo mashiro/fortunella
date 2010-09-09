@@ -12,6 +12,16 @@ def if_(cond, yes, no):
 		return yes
 	return no
 
+# python2.4 functools.partial
+def partial(func, *args, **kwargs):
+	def inner(*newargs, **newkwargs):
+		tmpargs = list(args)
+		tmpargs.extend(newargs)
+		tmpkwargs = dict(kwargs)
+		tmpkwargs.update(newkwargs)
+		return func(*tmpargs, **tmpkwargs)
+	return inner
+
 def isallowed(config, channel):
 	config = config or {}
 	enabled = config.get('enabled')
@@ -30,7 +40,7 @@ def isallowed(config, channel):
 
 	return True
 
-def getlogger(instance):
+def fullname(instance):
 	klass = instance.__class__
 	names = re.split(r'[/\.]', klass.__module__)
 	if 'fortunella' != names[0]:
@@ -38,7 +48,10 @@ def getlogger(instance):
 		names.insert(0, 'fortunella')
 		names.insert(1, 'plugins')
 	names.append(klass.__name__)
-	return logging.getLogger('.'.join(names))
+	return '.'.join(names)
+
+def getlogger(instance):
+	return logging.getLogger(fullname(instance))
 
 class ClassLoader(object):
 	def __init__(self, logger=None, base=None, callback=None):

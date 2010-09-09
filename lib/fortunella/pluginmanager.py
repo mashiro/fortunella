@@ -2,9 +2,10 @@
 # -*- encoding: utf-8 -*-
 from fortunella.plugin import Plugin
 from fortunella.events import events
-from fortunella.utils import getlogger, ClassLoader, isallowed
+from fortunella.utils import getlogger, ClassLoader, isallowed, fullname
 from twisted.internet import threads, reactor, defer
 import sys
+import os
 import re
 import imp
 
@@ -14,9 +15,11 @@ class PluginManager(object):
 		self.core = core
 		self.callbackmap = {}
 		self.plugins = []
+
+		# create plugins dummy module.
 		self.plugin_module_name = 'fortunella.plugins'
-		self.class_loader = ClassLoader(logger=self.logger, base=Plugin, callback=self._plugin_loaded)
 		sys.modules[self.plugin_module_name] = imp.new_module(self.plugin_module_name)
+		self.class_loader = ClassLoader(logger=self.logger, base=Plugin, callback=self._plugin_loaded)
 	
 	def _plugin_loaded(self, module, klass):
 		name = klass.__name__
@@ -48,6 +51,8 @@ class PluginManager(object):
 
 		if hasattr(func, 'im_self'):
 			instance = func.im_self
+		elif hasattr(func, '__self__'):
+			instance = func.__self__
 		else:
 			instance = None
 
@@ -55,6 +60,14 @@ class PluginManager(object):
 		callbacks.append(dict(instance=instance, func=func, command=command))
 		self.logger.debug('registering %s for event %s', func, events.name(event))
 		return self
+
+	def datafile(self, instance, filename):
+		name = instance.__class__.__name__
+		head, tail = os.path.split(filename)
+		dirname = os.path.join(self.core.config.general['data_dir'], name, head)
+		if not os.path.exists(dirname):
+			os.makedirs(dirname)
+		return os.path.join(dirname, tail)
 
 	def push(self, event, *args, **kwargs):
 		callbacks = self.callbackmap.get(event)

@@ -43,6 +43,9 @@ class Handler(object):
 		self.plugin = plugin
 		self.core = plugin.core
 	
-	#def init(self, config):
-	#def process(self, url):
+	def init(self, config):
+		self.config = config
+
+	def process(self, url):
+		pass
 

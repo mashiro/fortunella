@@ -140,6 +140,7 @@ def setdefault(config):
 	general.setdefault('password', '')
 	general.setdefault('encoding', 'utf-8')
 	general.setdefault('plugin_dir', 'plugins')
+	general.setdefault('data_dir', 'data')
 	return config
 
 def run(config):

@@ -1,6 +1,6 @@
 require:
   Python2.4 or higher
-  twisted
+  Twisted
   PyYAML
   PIL
   elementTree if Python2.4 or lower

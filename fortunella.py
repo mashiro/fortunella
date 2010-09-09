@@ -7,7 +7,7 @@ import yaml
 import optparse
 import logging
 import locale
-import fortunella
+import fortunella.core
 
 LOG_LEVELS = dict(
 	debug=logging.DEBUG,
@@ -32,7 +32,7 @@ def setuplogger(config):
 
 def main(config):
 	setuplogger(config)
-	fortunella.run(config)
+	fortunella.core.run(config)
 
 if __name__ == '__main__':
 	locale.setlocale(locale.LC_ALL, '')

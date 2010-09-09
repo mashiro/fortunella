@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-from fortunella import Plugin
+from fortunella.plugin import Plugin
 from fortunella.events import events
 from fortunella.utils import isallowed
 import urllib
@@ -38,7 +38,7 @@ class GoogleSearch(Plugin):
 			options = dict(
 					safe=self.image.setdefault('safe', 'off'))
 			self.register(
-					self.search('web', self.image, options),
+					self.search('images', self.image, options),
 					command=self.image['command'])
 	
 	def search(self, suffix, config, options):

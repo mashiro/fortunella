@@ -15,9 +15,10 @@ plugins:
   Http:
     Default:
     NicoVideo:
-	YouTube:
+    YouTube:
 
   GoogleSearch:
     Web:
-	Image:
+    Image:
 
+# vim: ft=yaml

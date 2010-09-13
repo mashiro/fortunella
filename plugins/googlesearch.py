@@ -24,26 +24,23 @@ class GoogleSearch(Plugin):
             self.web = self.config.get('Web')  or {}
             self.web.setdefault('command', 'g')
             self.web.setdefault('template', '$titleNoFormatting $url')
-            options = dict(lr=self.web.setdefault('lr', 'lang_ja'),
-                           safe=self.web.setdefault('safe', 'off'))
-            self.register(self.search('web', self.web, options),
-                          command=self.web['command'])
+            options = dict(lr=self.web.setdefault('lr', 'lang_ja'), safe=self.web.setdefault('safe', 'off'))
+            self.register(self.search('web', self.web, options), command=self.web['command'])
 
         if 'Image' in self.config:
             self.image = self.config.get('Image') or {}
             self.image.setdefault('command', 'gi')
             self.image.setdefault('template', '$titleNoFormatting [${width}x${height}] $url $originalContextUrl')
             options = dict(safe=self.image.setdefault('safe', 'off'))
-            self.register(self.search('images', self.image, options),
-                          command=self.image['command'])
+            self.register(self.search('images', self.image, options), command=self.image['command'])
 
     def search(self, suffix, config, options):
         def inner(command, user, channel, params):
             if isallowed(config, channel):
                 template = Template(config['template'])
-            for result in self.fetch(suffix, params, **options):
-                message = template.safe_substitute(result)
-                self.notice(channel, message)
+                for result in self.fetch(suffix, params, **options):
+                    message = template.safe_substitute(result)
+                    self.notice(channel, message)
         return inner
 
     def fetch(self, suffix, params, **options):

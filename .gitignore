@@ -2,3 +2,6 @@
 config.yaml
 tmp
 data
+dist
+*.egg-info
+

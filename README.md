@@ -4,7 +4,7 @@ Sorry, Python3k does not support it.
 
 ## install
 
-    git clone git:github.com/mashiro/fortunella.git
+    git clone git://github.com/mashiro/fortunella.git
 	cd fortunella
 	python setup.py install
 

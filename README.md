@@ -1,4 +1,4 @@
-Fortunella is a IRC bot framework for Python2.4 or higher.
+Fortunella is a [Citrus](http://coderepos.org/share/wiki/Citrus) like IRC bot framework for Python2.4 or higher.
 
 Sorry, Python3k does not support it.
 
